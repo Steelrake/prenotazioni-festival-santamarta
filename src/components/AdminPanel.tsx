@@ -277,9 +277,13 @@ const AdminPanel = ({ onLogout }: AdminPanelProps) => {
                         />
                         <Button
                           size="sm"
-                          variant={availability.isSoldOut ? "destructive" : "default"}
+                          variant={availability.isSoldOut ? "destructive" : "outline"}
                           onClick={() => handleSoldOut(dateStr, !availability.isSoldOut)}
-                          className="min-w-[120px] gap-2"
+                          className={`min-w-[120px] gap-2 ${
+                            availability.isSoldOut 
+                              ? 'bg-destructive text-destructive-foreground hover:bg-destructive/90' 
+                              : 'bg-primary text-primary-foreground hover:bg-primary/90'
+                          }`}
                         >
                           {availability.isSoldOut ? (
                             <>
