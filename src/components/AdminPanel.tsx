@@ -19,6 +19,7 @@ import { getRestaurantDates, formatDisplayDate, generateBookingCode } from '@/ut
 import { toast } from '@/hooks/use-toast';
 import { Textarea } from '@/components/ui/textarea';
 import { Booking } from '@/types/booking';
+import { Lock, Unlock } from 'lucide-react';
 
 interface AdminPanelProps {
   onLogout: () => void;
@@ -276,10 +277,21 @@ const AdminPanel = ({ onLogout }: AdminPanelProps) => {
                         />
                         <Button
                           size="sm"
-                          variant={availability.isSoldOut ? "destructive" : "outline"}
+                          variant={availability.isSoldOut ? "destructive" : "default"}
                           onClick={() => handleSoldOut(dateStr, !availability.isSoldOut)}
+                          className="min-w-[120px] gap-2"
                         >
-                          {availability.isSoldOut ? "Sold Out" : "Disponibile"}
+                          {availability.isSoldOut ? (
+                            <>
+                              <Lock size={16} />
+                              Chiuso
+                            </>
+                          ) : (
+                            <>
+                              <Unlock size={16} />
+                              Aperto
+                            </>
+                          )}
                         </Button>
                         <Button
                           size="sm"
