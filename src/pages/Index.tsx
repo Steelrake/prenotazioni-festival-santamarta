@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Settings } from 'lucide-react';
@@ -98,7 +97,7 @@ const Index = () => {
           {/* Hero Section */}
           <div className="mb-16">
             <h1 className="text-6xl font-bold text-gray-800 mb-6">
-              Ristorante Sera
+              Cene al Festival Santa Marta
             </h1>
             <p className="text-xl text-gray-600 mb-4">
               Aperto tutte le sere dalle 19:00 alle 24:00
