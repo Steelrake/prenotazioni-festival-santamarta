@@ -1,5 +1,6 @@
 
-import { getRestaurantDates, getDayAvailability } from '@/utils/dateUtils';
+import { getRestaurantDates } from '@/utils/dateUtils';
+import { getDayAvailability } from '@/utils/storage';
 import DayCard from './DayCard';
 
 const OverviewTab = () => {

@@ -2,7 +2,8 @@
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { getRestaurantDates, getDayAvailability, formatDisplayDate } from '@/utils/dateUtils';
+import { getRestaurantDates, formatDisplayDate } from '@/utils/dateUtils';
+import { getDayAvailability } from '@/utils/storage';
 import { Lock, Unlock } from 'lucide-react';
 
 interface ManageTabProps {
@@ -41,13 +42,9 @@ const ManageTab = ({ onSoldOut, onMaxSeatsChange, onResetDay }: ManageTabProps) 
                   />
                   <Button
                     size="sm"
-                    variant={availability.isSoldOut ? "destructive" : "outline"}
+                    variant={availability.isSoldOut ? "destructive" : "default"}
                     onClick={() => onSoldOut(dateStr, !availability.isSoldOut)}
-                    className={`min-w-[120px] gap-2 ${
-                      availability.isSoldOut 
-                        ? 'bg-destructive text-destructive-foreground hover:bg-destructive/90' 
-                        : 'bg-primary text-primary-foreground hover:bg-primary/90'
-                    }`}
+                    className="min-w-[120px] gap-2"
                   >
                     {availability.isSoldOut ? (
                       <>
