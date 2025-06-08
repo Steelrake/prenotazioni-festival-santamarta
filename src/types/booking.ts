@@ -7,7 +7,7 @@ export interface Booking {
   email: string;
   notes?: string;
   code: string;
-  createdAt: string;
+  created_at: string;
 }
 
 export interface DayAvailability {
