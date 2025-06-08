@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { formatDisplayDate, generateBookingCode } from '@/utils/dateUtils';
-import { saveBooking, getDayAvailability } from '@/utils/storage';
+import { saveBooking, getDayAvailability } from '@/utils/supabaseStorage';
 import { toast } from '@/hooks/use-toast';
 
 interface BookingFormProps {
@@ -23,20 +23,30 @@ const BookingForm = ({ date, onBack, onSuccess }: BookingFormProps) => {
     notes: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [availability, setAvailability] = useState<any>(null);
 
-  const availability = getDayAvailability(date);
+  // Load availability when component mounts
+  useState(() => {
+    const loadAvailability = async () => {
+      const data = await getDayAvailability(date);
+      setAvailability(data);
+    };
+    loadAvailability();
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
 
     try {
+      // Get latest availability
+      const currentAvailability = await getDayAvailability(date);
       const seats = parseInt(formData.seats);
       
-      if (seats <= 0 || seats > availability.availableSeats) {
+      if (seats <= 0 || seats > currentAvailability.availableSeats) {
         toast({
           title: "Errore",
-          description: `Puoi prenotare da 1 a ${availability.availableSeats} posti.`,
+          description: `Puoi prenotare da 1 a ${currentAvailability.availableSeats} posti.`,
           variant: "destructive"
         });
         return;
@@ -51,17 +61,22 @@ const BookingForm = ({ date, onBack, onSuccess }: BookingFormProps) => {
         email: formData.email.trim(),
         notes: formData.notes.trim(),
         code: bookingCode,
-        createdAt: new Date().toISOString()
+        created_at: new Date().toISOString()
       };
 
-      saveBooking(booking);
-      onSuccess(bookingCode);
+      const success = await saveBooking(booking);
       
-      toast({
-        title: "Prenotazione Confermata!",
-        description: `Il tuo codice è: ${bookingCode}`,
-      });
+      if (success) {
+        onSuccess(bookingCode);
+        toast({
+          title: "Prenotazione Confermata!",
+          description: `Il tuo codice è: ${bookingCode}`,
+        });
+      } else {
+        throw new Error('Failed to save booking');
+      }
     } catch (error) {
+      console.error('Booking error:', error);
       toast({
         title: "Errore",
         description: "Si è verificato un errore durante la prenotazione.",
@@ -71,6 +86,14 @@ const BookingForm = ({ date, onBack, onSuccess }: BookingFormProps) => {
       setIsSubmitting(false);
     }
   };
+
+  if (!availability) {
+    return (
+      <div className="max-w-2xl mx-auto p-6">
+        <div className="text-center">Caricamento...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-2xl mx-auto p-6">

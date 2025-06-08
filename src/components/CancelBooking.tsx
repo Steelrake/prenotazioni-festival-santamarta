@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { deleteBooking, getBookingByCode } from '@/utils/storage';
+import { deleteBooking, getBookingByCode } from '@/utils/supabaseStorage';
 import { toast } from '@/hooks/use-toast';
 import { X, Check } from 'lucide-react';
 
@@ -22,7 +22,7 @@ const CancelBooking = ({ onBack }: CancelBookingProps) => {
     setIsSubmitting(true);
 
     try {
-      const booking = getBookingByCode(code.toUpperCase());
+      const booking = await getBookingByCode(code.toUpperCase());
       
       if (!booking) {
         toast({
@@ -33,7 +33,7 @@ const CancelBooking = ({ onBack }: CancelBookingProps) => {
         return;
       }
 
-      const success = deleteBooking(code.toUpperCase());
+      const success = await deleteBooking(code.toUpperCase());
       
       if (success) {
         setCancelled(true);
@@ -49,6 +49,7 @@ const CancelBooking = ({ onBack }: CancelBookingProps) => {
         });
       }
     } catch (error) {
+      console.error('Cancel booking error:', error);
       toast({
         title: "Errore",
         description: "Si è verificato un errore durante la cancellazione.",

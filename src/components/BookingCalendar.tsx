@@ -1,10 +1,11 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { getRestaurantDates, formatDisplayDate, formatDate } from '@/utils/dateUtils';
-import { getDayAvailability } from '@/utils/storage';
+import { getDayAvailability } from '@/utils/supabaseStorage';
 import { cn } from '@/lib/utils';
+import { DayAvailability } from '@/types/booking';
 
 interface BookingCalendarProps {
   onDateSelect: (date: Date) => void;
@@ -13,11 +14,31 @@ interface BookingCalendarProps {
 
 const BookingCalendar = ({ onDateSelect, onBack }: BookingCalendarProps) => {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [availabilities, setAvailabilities] = useState<Record<string, DayAvailability>>({});
+  const [loading, setLoading] = useState(true);
   const restaurantDates = getRestaurantDates();
 
+  useEffect(() => {
+    const loadAvailabilities = async () => {
+      setLoading(true);
+      const data: Record<string, DayAvailability> = {};
+      
+      for (const date of restaurantDates) {
+        const availability = await getDayAvailability(date);
+        data[availability.date] = availability;
+      }
+      
+      setAvailabilities(data);
+      setLoading(false);
+    };
+
+    loadAvailabilities();
+  }, []);
+
   const handleDateClick = (date: Date) => {
-    const availability = getDayAvailability(date);
-    if (!availability.isSoldOut) {
+    const dateStr = formatDate(date);
+    const availability = availabilities[dateStr];
+    if (availability && !availability.isSoldOut) {
       setSelectedDate(date);
     }
   };
@@ -27,6 +48,14 @@ const BookingCalendar = ({ onDateSelect, onBack }: BookingCalendarProps) => {
       onDateSelect(selectedDate);
     }
   };
+
+  if (loading) {
+    return (
+      <div className="max-w-4xl mx-auto p-6">
+        <div className="text-center">Caricamento calendario...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-4xl mx-auto p-6">
@@ -46,12 +75,15 @@ const BookingCalendar = ({ onDateSelect, onBack }: BookingCalendarProps) => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
         {restaurantDates.map((date) => {
-          const availability = getDayAvailability(date);
-          const isSelected = selectedDate && formatDate(selectedDate) === formatDate(date);
+          const dateStr = formatDate(date);
+          const availability = availabilities[dateStr];
+          const isSelected = selectedDate && formatDate(selectedDate) === dateStr;
+          
+          if (!availability) return null;
           
           return (
             <Card
-              key={formatDate(date)}
+              key={dateStr}
               className={cn(
                 "p-4 cursor-pointer transition-all duration-200 hover:scale-105",
                 availability.isSoldOut 

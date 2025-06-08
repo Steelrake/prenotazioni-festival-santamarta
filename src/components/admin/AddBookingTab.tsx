@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Booking } from '@/types/booking';
 import { generateBookingCode } from '@/utils/dateUtils';
-import { saveBooking } from '@/utils/storage';
+import { saveBooking } from '@/utils/supabaseStorage';
 import { toast } from '@/hooks/use-toast';
 
 const AddBookingTab = () => {
@@ -19,7 +19,7 @@ const AddBookingTab = () => {
     notes: ''
   });
 
-  const handleAddBooking = (e: React.FormEvent) => {
+  const handleAddBooking = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       const booking: Booking = {
@@ -30,16 +30,22 @@ const AddBookingTab = () => {
         email: newBooking.email,
         notes: newBooking.notes,
         code: generateBookingCode(),
-        createdAt: new Date().toISOString()
+        created_at: new Date().toISOString()
       };
       
-      saveBooking(booking);
-      setNewBooking({ date: '', seats: '', name: '', email: '', notes: '' });
-      toast({
-        title: "Prenotazione aggiunta",
-        description: `Codice: ${booking.code}`
-      });
+      const success = await saveBooking(booking);
+      
+      if (success) {
+        setNewBooking({ date: '', seats: '', name: '', email: '', notes: '' });
+        toast({
+          title: "Prenotazione aggiunta",
+          description: `Codice: ${booking.code}`
+        });
+      } else {
+        throw new Error('Failed to save booking');
+      }
     } catch (error) {
+      console.error('Add booking error:', error);
       toast({
         title: "Errore",
         description: "Si è verificato un errore durante l'aggiunta.",

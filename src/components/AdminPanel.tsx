@@ -1,7 +1,7 @@
 
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { updateDaySettings, resetDay, deleteBooking } from '@/utils/storage';
+import { updateDaySettings, resetDay, deleteBooking } from '@/utils/supabaseStorage';
 import { toast } from '@/hooks/use-toast';
 import OverviewTab from './admin/OverviewTab';
 import BookingsTab from './admin/BookingsTab';
@@ -14,25 +14,25 @@ interface AdminPanelProps {
 }
 
 const AdminPanel = ({ onLogout }: AdminPanelProps) => {
-  const handleSoldOut = (date: string, isSoldOut: boolean) => {
-    updateDaySettings(date, { isSoldOut });
+  const handleSoldOut = async (date: string, isSoldOut: boolean) => {
+    await updateDaySettings(date, { isSoldOut });
     toast({
       title: isSoldOut ? "Giorno impostato come SOLD OUT" : "Giorno riaperto",
       description: `${date} è stato aggiornato.`
     });
   };
 
-  const handleMaxSeatsChange = (date: string, maxSeats: number) => {
-    updateDaySettings(date, { maxSeats });
+  const handleMaxSeatsChange = async (date: string, maxSeats: number) => {
+    await updateDaySettings(date, { maxSeats });
     toast({
       title: "Posti massimi aggiornati",
       description: `${date}: ${maxSeats} posti massimi.`
     });
   };
 
-  const handleResetDay = (date: string) => {
+  const handleResetDay = async (date: string) => {
     if (confirm(`Sei sicuro di voler resettare il giorno ${date}? Tutte le prenotazioni verranno eliminate.`)) {
-      resetDay(date);
+      await resetDay(date);
       toast({
         title: "Giorno resettato",
         description: `Tutte le prenotazioni del ${date} sono state eliminate.`
@@ -40,13 +40,19 @@ const AdminPanel = ({ onLogout }: AdminPanelProps) => {
     }
   };
 
-  const handleDeleteBooking = (code: string) => {
+  const handleDeleteBooking = async (code: string) => {
     if (confirm(`Sei sicuro di voler eliminare la prenotazione ${code}?`)) {
-      const success = deleteBooking(code);
+      const success = await deleteBooking(code);
       if (success) {
         toast({
           title: "Prenotazione eliminata",
           description: `La prenotazione ${code} è stata eliminata.`
+        });
+      } else {
+        toast({
+          title: "Errore",
+          description: "Si è verificato un errore durante l'eliminazione.",
+          variant: "destructive"
         });
       }
     }

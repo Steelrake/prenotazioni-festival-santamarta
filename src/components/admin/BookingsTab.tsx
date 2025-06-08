@@ -1,5 +1,5 @@
 
-import { getBookings } from '@/utils/storage';
+import { useBookings } from '@/hooks/useBookings';
 import BookingCard from './BookingCard';
 
 interface BookingsTabProps {
@@ -7,7 +7,16 @@ interface BookingsTabProps {
 }
 
 const BookingsTab = ({ onDeleteBooking }: BookingsTabProps) => {
-  const bookings = getBookings();
+  const { bookings, loading } = useBookings();
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <h2 className="text-2xl font-semibold">Tutte le Prenotazioni</h2>
+        <div className="text-center">Caricamento...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
