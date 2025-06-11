@@ -10,7 +10,11 @@ import { generateBookingCode } from '@/utils/dateUtils';
 import { saveBooking } from '@/utils/supabaseStorage';
 import { toast } from '@/hooks/use-toast';
 
-const AddBookingTab = () => {
+interface AddBookingTabProps {
+  onBookingAdded: () => void;
+}
+
+const AddBookingTab = ({ onBookingAdded }: AddBookingTabProps) => {
   const [newBooking, setNewBooking] = useState({
     date: '',
     seats: '',
@@ -37,6 +41,7 @@ const AddBookingTab = () => {
       
       if (success) {
         setNewBooking({ date: '', seats: '', name: '', email: '', notes: '' });
+        onBookingAdded();
         toast({
           title: "Prenotazione aggiunta",
           description: `Codice: ${booking.code}`

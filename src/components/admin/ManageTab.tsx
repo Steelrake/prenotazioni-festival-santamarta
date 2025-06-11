@@ -1,17 +1,19 @@
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { getRestaurantDates, formatDisplayDate } from '@/utils/dateUtils';
-import { getDayAvailability } from '@/utils/supabaseStorage';
 import { Lock, Unlock, Save } from 'lucide-react';
 import { DayAvailability } from '@/types/booking';
 
 interface ManageTabProps {
+  availabilities: Record<string, DayAvailability>;
+  daySettings: Record<string, { maxSeats: number; isSoldOut: boolean }>;
   onSoldOut: (date: string, isSoldOut: boolean) => void;
   onMaxSeatsChange: (date: string, maxSeats: number) => void;
   onResetDay: (date: string) => void;
+  onSave: () => void;
 }
 
 interface LocalChanges {
@@ -21,29 +23,17 @@ interface LocalChanges {
   };
 }
 
-const ManageTab = ({ onSoldOut, onMaxSeatsChange, onResetDay }: ManageTabProps) => {
-  const [availabilities, setAvailabilities] = useState<Record<string, DayAvailability>>({});
+const ManageTab = ({ 
+  availabilities, 
+  daySettings, 
+  onSoldOut, 
+  onMaxSeatsChange, 
+  onResetDay,
+  onSave 
+}: ManageTabProps) => {
   const [localChanges, setLocalChanges] = useState<LocalChanges>({});
-  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const restaurantDates = getRestaurantDates();
-
-  const loadAvailabilities = async () => {
-    setLoading(true);
-    const data: Record<string, DayAvailability> = {};
-    
-    for (const date of restaurantDates) {
-      const availability = await getDayAvailability(date);
-      data[availability.date] = availability;
-    }
-    
-    setAvailabilities(data);
-    setLoading(false);
-  };
-
-  useEffect(() => {
-    loadAvailabilities();
-  }, []);
 
   const handleLocalSoldOutChange = (date: string, isSoldOut: boolean) => {
     setLocalChanges(prev => ({
@@ -73,7 +63,6 @@ const ManageTab = ({ onSoldOut, onMaxSeatsChange, onResetDay }: ManageTabProps) 
       delete newChanges[date];
       return newChanges;
     });
-    loadAvailabilities(); // Refresh data
   };
 
   const saveAllChanges = async () => {
@@ -93,7 +82,7 @@ const ManageTab = ({ onSoldOut, onMaxSeatsChange, onResetDay }: ManageTabProps) 
       setLocalChanges({});
       
       // Refresh data from database
-      await loadAvailabilities();
+      onSave();
     } catch (error) {
       console.error('Error saving changes:', error);
     } finally {
@@ -103,15 +92,6 @@ const ManageTab = ({ onSoldOut, onMaxSeatsChange, onResetDay }: ManageTabProps) 
 
   const hasUnsavedChanges = Object.keys(localChanges).length > 0;
 
-  if (loading) {
-    return (
-      <div className="space-y-6">
-        <h2 className="text-2xl font-semibold">Gestione Giorni</h2>
-        <div className="text-center">Caricamento...</div>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6">
       <h2 className="text-2xl font-semibold">Gestione Giorni</h2>
@@ -119,13 +99,14 @@ const ManageTab = ({ onSoldOut, onMaxSeatsChange, onResetDay }: ManageTabProps) 
         {restaurantDates.map((date) => {
           const dateStr = date.toISOString().split('T')[0];
           const availability = availabilities[dateStr];
+          const settings = daySettings[dateStr] || { maxSeats: 100, isSoldOut: false };
           const localChange = localChanges[dateStr];
           
           if (!availability) return null;
           
           // Use local changes if available, otherwise use database values
           const currentTotalSeats = localChange?.totalSeats ?? availability.totalSeats;
-          const currentIsSoldOut = localChange?.isSoldOut ?? availability.isSoldOut;
+          const currentIsSoldOut = localChange?.isSoldOut ?? settings.isSoldOut;
           const hasLocalChanges = localChange !== undefined;
           
           return (
@@ -154,7 +135,9 @@ const ManageTab = ({ onSoldOut, onMaxSeatsChange, onResetDay }: ManageTabProps) 
                     size="sm"
                     variant={currentIsSoldOut ? "destructive" : "default"}
                     onClick={() => handleLocalSoldOutChange(dateStr, !currentIsSoldOut)}
-                    className="min-w-[120px] gap-2"
+                    className={`min-w-[120px] gap-2 ${
+                      !currentIsSoldOut ? 'bg-green-600 hover:bg-green-700 text-white' : ''
+                    }`}
                   >
                     {currentIsSoldOut ? (
                       <>

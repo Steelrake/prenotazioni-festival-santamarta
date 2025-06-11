@@ -2,40 +2,22 @@
 import { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useBookings } from '@/hooks/useBookings';
+import { Booking } from '@/types/booking';
 import BookingCard from './BookingCard';
 
 interface SearchTabProps {
+  bookings: Booking[];
   onDeleteBooking: (code: string) => void;
 }
 
-const SearchTab = ({ onDeleteBooking }: SearchTabProps) => {
+const SearchTab = ({ bookings, onDeleteBooking }: SearchTabProps) => {
   const [searchTerm, setSearchTerm] = useState('');
-  const { bookings, loading } = useBookings();
 
   const searchResults = searchTerm ? bookings.filter(booking => 
     booking.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
     booking.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     booking.email.toLowerCase().includes(searchTerm.toLowerCase())
   ) : [];
-
-  if (loading) {
-    return (
-      <div className="space-y-6">
-        <div>
-          <Label htmlFor="search">Cerca per codice o nominativo</Label>
-          <Input
-            id="search"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Inserisci codice prenotazione o nome cliente..."
-            className="mt-2"
-          />
-        </div>
-        <div className="text-center">Caricamento...</div>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-6">
