@@ -8,6 +8,7 @@ import BookingsTab from './admin/BookingsTab';
 import SearchTab from './admin/SearchTab';
 import ManageTab from './admin/ManageTab';
 import AddBookingTab from './admin/AddBookingTab';
+import ExportTab from './admin/ExportTab';
 
 interface AdminPanelProps {
   onLogout: () => void;
@@ -69,12 +70,13 @@ const AdminPanel = ({ onLogout }: AdminPanelProps) => {
         </div>
 
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="overview">Panoramica</TabsTrigger>
             <TabsTrigger value="bookings">Prenotazioni</TabsTrigger>
             <TabsTrigger value="search">Ricerca</TabsTrigger>
             <TabsTrigger value="manage">Gestione Giorni</TabsTrigger>
             <TabsTrigger value="add">Aggiungi</TabsTrigger>
+            <TabsTrigger value="export">Esporta</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview">
@@ -99,6 +101,10 @@ const AdminPanel = ({ onLogout }: AdminPanelProps) => {
 
           <TabsContent value="add">
             <AddBookingTab />
+          </TabsContent>
+
+          <TabsContent value="export">
+            <ExportTab />
           </TabsContent>
         </Tabs>
       </div>
