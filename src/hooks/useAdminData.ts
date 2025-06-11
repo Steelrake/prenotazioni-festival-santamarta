@@ -22,16 +22,21 @@ export const useAdminData = () => {
   });
 
   const loadAllData = useCallback(async () => {
+    console.log('Loading admin data...');
     setState(prev => ({ ...prev, loading: true }));
     
     try {
       const restaurantDates = getRestaurantDates();
+      console.log('Restaurant dates:', restaurantDates.length);
       
       // Load all data in parallel
       const [bookings, daySettings] = await Promise.all([
         getBookings(),
         getDaySettings()
       ]);
+
+      console.log('Loaded bookings:', bookings.length);
+      console.log('Loaded day settings:', Object.keys(daySettings).length);
 
       // Load availabilities for all dates
       const availabilitiesData: Record<string, DayAvailability> = {};
@@ -40,6 +45,8 @@ export const useAdminData = () => {
         availabilitiesData[availability.date] = availability;
       }
 
+      console.log('Loaded availabilities:', Object.keys(availabilitiesData).length);
+
       setState({
         bookings,
         availabilities: availabilitiesData,
@@ -47,9 +54,15 @@ export const useAdminData = () => {
         loading: false,
         initialized: true
       });
+
+      console.log('Admin data loaded successfully');
     } catch (error) {
       console.error('Error loading admin data:', error);
-      setState(prev => ({ ...prev, loading: false }));
+      setState(prev => ({ 
+        ...prev, 
+        loading: false,
+        initialized: true // Set to true even on error to prevent infinite loading
+      }));
     }
   }, []);
 

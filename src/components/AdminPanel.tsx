@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -20,10 +19,18 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout }) => {
   const adminData = useAdminData();
 
   useEffect(() => {
-    if (!adminData.initialized) {
+    console.log('AdminPanel mounted, adminData state:', {
+      loading: adminData.loading,
+      initialized: adminData.initialized,
+      bookingsCount: adminData.bookings.length,
+      availabilitiesCount: Object.keys(adminData.availabilities).length
+    });
+
+    if (!adminData.initialized && !adminData.loading) {
+      console.log('Loading admin data...');
       adminData.loadAllData();
     }
-  }, [adminData]);
+  }, [adminData.initialized, adminData.loading]);
 
   const handleSoldOut = async (date: string, isSoldOut: boolean) => {
     await updateDaySettings(date, { isSoldOut });
@@ -81,7 +88,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout }) => {
     adminData.refreshData();
   };
 
-  if (adminData.loading && !adminData.initialized) {
+  if (adminData.loading) {
     return (
       <div className="min-h-screen bg-background p-6">
         <div className="max-w-7xl mx-auto">
