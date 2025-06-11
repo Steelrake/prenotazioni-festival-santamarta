@@ -1,3 +1,4 @@
+
 import React, { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -9,7 +10,6 @@ import BookingsTab from './admin/BookingsTab';
 import SearchTab from './admin/SearchTab';
 import ManageTab from './admin/ManageTab';
 import AddBookingTab from './admin/AddBookingTab';
-import ExportTab from './admin/ExportTab';
 
 interface AdminPanelProps {
   onLogout: () => void;
@@ -112,13 +112,12 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout }) => {
         </div>
 
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="overview">Panoramica</TabsTrigger>
             <TabsTrigger value="bookings">Prenotazioni</TabsTrigger>
             <TabsTrigger value="search">Ricerca</TabsTrigger>
             <TabsTrigger value="manage">Gestione Giorni</TabsTrigger>
             <TabsTrigger value="add">Aggiungi</TabsTrigger>
-            <TabsTrigger value="export">Esporta</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview">
@@ -146,10 +145,6 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout }) => {
 
           <TabsContent value="add">
             <AddBookingTab onBookingAdded={handleBookingAdded} />
-          </TabsContent>
-
-          <TabsContent value="export">
-            <ExportTab bookings={adminData.bookings} />
           </TabsContent>
         </Tabs>
       </div>

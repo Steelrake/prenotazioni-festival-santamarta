@@ -4,8 +4,9 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { getRestaurantDates, formatDisplayDate } from '@/utils/dateUtils';
-import { Lock, Unlock, Save } from 'lucide-react';
+import { Lock, Unlock, Save, Download } from 'lucide-react';
 import { DayAvailability } from '@/types/booking';
+import { getBookingsByDate } from '@/utils/supabaseStorage';
 
 interface ManageTabProps {
   availabilities: Record<string, DayAvailability>;
@@ -63,6 +64,49 @@ const ManageTab = ({
       delete newChanges[date];
       return newChanges;
     });
+  };
+
+  const handleDownloadDay = async (dateStr: string) => {
+    try {
+      const bookings = await getBookingsByDate(dateStr);
+      const date = new Date(dateStr);
+      const formattedDate = formatDisplayDate(date);
+      
+      let content = `Prenotazioni per ${formattedDate}\n`;
+      content += `Data: ${dateStr}\n`;
+      content += `Totale prenotazioni: ${bookings.length}\n`;
+      content += `Totale posti: ${bookings.reduce((sum, b) => sum + b.seats, 0)}\n\n`;
+      
+      if (bookings.length === 0) {
+        content += 'Nessuna prenotazione per questo giorno.\n';
+      } else {
+        content += 'ELENCO PRENOTAZIONI:\n';
+        content += '===================\n\n';
+        
+        bookings.forEach((booking, index) => {
+          content += `${index + 1}. Codice: ${booking.code}\n`;
+          content += `   Nome: ${booking.name}\n`;
+          content += `   Email: ${booking.email}\n`;
+          content += `   Posti: ${booking.seats}\n`;
+          if (booking.notes) {
+            content += `   Note: ${booking.notes}\n`;
+          }
+          content += `   Prenotato il: ${new Date(booking.created_at).toLocaleDateString('it-IT')}\n\n`;
+        });
+      }
+      
+      const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `prenotazioni_${dateStr}.txt`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Error downloading day data:', error);
+    }
   };
 
   const saveAllChanges = async () => {
@@ -150,6 +194,14 @@ const ManageTab = ({
                         Aperto
                       </>
                     )}
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={() => handleDownloadDay(dateStr)}
+                    className="bg-yellow-500 hover:bg-yellow-600 text-white gap-2"
+                  >
+                    <Download size={16} />
+                    Download
                   </Button>
                   <Button
                     size="sm"
