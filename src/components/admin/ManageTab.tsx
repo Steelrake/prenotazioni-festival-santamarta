@@ -5,7 +5,7 @@ import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { getRestaurantDates, formatDisplayDate } from '@/utils/dateUtils';
 import { getDayAvailability } from '@/utils/supabaseStorage';
-import { Lock, Unlock } from 'lucide-react';
+import { Lock, Unlock, Save } from 'lucide-react';
 import { DayAvailability } from '@/types/booking';
 
 interface ManageTabProps {
@@ -14,9 +14,18 @@ interface ManageTabProps {
   onResetDay: (date: string) => void;
 }
 
+interface LocalChanges {
+  [date: string]: {
+    totalSeats?: number;
+    isSoldOut?: boolean;
+  };
+}
+
 const ManageTab = ({ onSoldOut, onMaxSeatsChange, onResetDay }: ManageTabProps) => {
   const [availabilities, setAvailabilities] = useState<Record<string, DayAvailability>>({});
+  const [localChanges, setLocalChanges] = useState<LocalChanges>({});
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const restaurantDates = getRestaurantDates();
 
   const loadAvailabilities = async () => {
@@ -36,20 +45,63 @@ const ManageTab = ({ onSoldOut, onMaxSeatsChange, onResetDay }: ManageTabProps) 
     loadAvailabilities();
   }, []);
 
-  const handleSoldOut = async (date: string, isSoldOut: boolean) => {
-    await onSoldOut(date, isSoldOut);
-    loadAvailabilities(); // Refresh data
+  const handleLocalSoldOutChange = (date: string, isSoldOut: boolean) => {
+    setLocalChanges(prev => ({
+      ...prev,
+      [date]: {
+        ...prev[date],
+        isSoldOut
+      }
+    }));
   };
 
-  const handleMaxSeatsChange = async (date: string, maxSeats: number) => {
-    await onMaxSeatsChange(date, maxSeats);
-    loadAvailabilities(); // Refresh data
+  const handleLocalMaxSeatsChange = (date: string, maxSeats: number) => {
+    setLocalChanges(prev => ({
+      ...prev,
+      [date]: {
+        ...prev[date],
+        totalSeats: maxSeats
+      }
+    }));
   };
 
-  const handleResetDay = async (date: string) => {
+  const handleResetDayLocal = async (date: string) => {
     await onResetDay(date);
+    // Remove local changes for this date since it's been reset
+    setLocalChanges(prev => {
+      const newChanges = { ...prev };
+      delete newChanges[date];
+      return newChanges;
+    });
     loadAvailabilities(); // Refresh data
   };
+
+  const saveAllChanges = async () => {
+    setSaving(true);
+    try {
+      // Apply all local changes to the database
+      for (const [date, changes] of Object.entries(localChanges)) {
+        if (changes.totalSeats !== undefined) {
+          await onMaxSeatsChange(date, changes.totalSeats);
+        }
+        if (changes.isSoldOut !== undefined) {
+          await onSoldOut(date, changes.isSoldOut);
+        }
+      }
+      
+      // Clear local changes after successful save
+      setLocalChanges({});
+      
+      // Refresh data from database
+      await loadAvailabilities();
+    } catch (error) {
+      console.error('Error saving changes:', error);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const hasUnsavedChanges = Object.keys(localChanges).length > 0;
 
   if (loading) {
     return (
@@ -67,33 +119,44 @@ const ManageTab = ({ onSoldOut, onMaxSeatsChange, onResetDay }: ManageTabProps) 
         {restaurantDates.map((date) => {
           const dateStr = date.toISOString().split('T')[0];
           const availability = availabilities[dateStr];
+          const localChange = localChanges[dateStr];
           
           if (!availability) return null;
           
+          // Use local changes if available, otherwise use database values
+          const currentTotalSeats = localChange?.totalSeats ?? availability.totalSeats;
+          const currentIsSoldOut = localChange?.isSoldOut ?? availability.isSoldOut;
+          const hasLocalChanges = localChange !== undefined;
+          
           return (
-            <Card key={dateStr} className="p-4">
+            <Card key={dateStr} className={`p-4 ${hasLocalChanges ? 'border-orange-300 bg-orange-50' : ''}`}>
               <div className="flex justify-between items-center">
                 <div>
                   <h3 className="font-semibold">{formatDisplayDate(date)}</h3>
                   <div className="text-sm text-muted-foreground">
-                    {availability.bookedSeats}/{availability.totalSeats} prenotati
+                    {availability.bookedSeats}/{currentTotalSeats} prenotati
+                    {hasLocalChanges && (
+                      <span className="ml-2 text-orange-600 font-medium">
+                        (modifiche non salvate)
+                      </span>
+                    )}
                   </div>
                 </div>
                 <div className="flex gap-2 items-center">
                   <Input
                     type="number"
-                    value={availability.totalSeats}
-                    onChange={(e) => handleMaxSeatsChange(dateStr, parseInt(e.target.value))}
+                    value={currentTotalSeats}
+                    onChange={(e) => handleLocalMaxSeatsChange(dateStr, parseInt(e.target.value))}
                     className="w-20"
                     min="1"
                   />
                   <Button
                     size="sm"
-                    variant={availability.isSoldOut ? "destructive" : "default"}
-                    onClick={() => handleSoldOut(dateStr, !availability.isSoldOut)}
+                    variant={currentIsSoldOut ? "destructive" : "default"}
+                    onClick={() => handleLocalSoldOutChange(dateStr, !currentIsSoldOut)}
                     className="min-w-[120px] gap-2"
                   >
-                    {availability.isSoldOut ? (
+                    {currentIsSoldOut ? (
                       <>
                         <Lock size={16} />
                         Chiuso
@@ -108,7 +171,7 @@ const ManageTab = ({ onSoldOut, onMaxSeatsChange, onResetDay }: ManageTabProps) 
                   <Button
                     size="sm"
                     variant="destructive"
-                    onClick={() => handleResetDay(dateStr)}
+                    onClick={() => handleResetDayLocal(dateStr)}
                   >
                     Reset
                   </Button>
@@ -118,6 +181,20 @@ const ManageTab = ({ onSoldOut, onMaxSeatsChange, onResetDay }: ManageTabProps) 
           );
         })}
       </div>
+      
+      {hasUnsavedChanges && (
+        <div className="flex justify-center pt-6 border-t">
+          <Button
+            onClick={saveAllChanges}
+            disabled={saving}
+            size="lg"
+            className="gap-2 bg-green-600 hover:bg-green-700"
+          >
+            <Save size={20} />
+            {saving ? 'Salvataggio...' : 'Salva Modifiche'}
+          </Button>
+        </div>
+      )}
     </div>
   );
 };
