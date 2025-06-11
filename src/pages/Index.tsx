@@ -1,4 +1,5 @@
-import { useState } from 'react';
+
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Settings } from 'lucide-react';
 import BookingCalendar from '@/components/BookingCalendar';
@@ -10,7 +11,7 @@ import AdminPanel from '@/components/AdminPanel';
 
 type ViewType = 'home' | 'calendar' | 'form' | 'success' | 'cancel' | 'admin-login' | 'admin';
 
-const Index = () => {
+const Index: React.FC = () => {
   const [currentView, setCurrentView] = useState<ViewType>('home');
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [bookingCode, setBookingCode] = useState<string>('');

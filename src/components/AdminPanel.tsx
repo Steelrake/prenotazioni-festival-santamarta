@@ -1,4 +1,5 @@
 
+import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { updateDaySettings, resetDay, deleteBooking } from '@/utils/supabaseStorage';
@@ -14,7 +15,7 @@ interface AdminPanelProps {
   onLogout: () => void;
 }
 
-const AdminPanel = ({ onLogout }: AdminPanelProps) => {
+const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout }) => {
   const handleSoldOut = async (date: string, isSoldOut: boolean) => {
     await updateDaySettings(date, { isSoldOut });
     toast({
