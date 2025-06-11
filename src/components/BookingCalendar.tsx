@@ -13,7 +13,6 @@ interface BookingCalendarProps {
 }
 
 const BookingCalendar = ({ onDateSelect, onBack }: BookingCalendarProps) => {
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [availabilities, setAvailabilities] = useState<Record<string, DayAvailability>>({});
   const [loading, setLoading] = useState(true);
   const restaurantDates = getRestaurantDates();
@@ -39,13 +38,8 @@ const BookingCalendar = ({ onDateSelect, onBack }: BookingCalendarProps) => {
     const dateStr = formatDate(date);
     const availability = availabilities[dateStr];
     if (availability && !availability.isSoldOut) {
-      setSelectedDate(date);
-    }
-  };
-
-  const handleConfirm = () => {
-    if (selectedDate) {
-      onDateSelect(selectedDate);
+      // Vai direttamente al form di prenotazione
+      onDateSelect(date);
     }
   };
 
@@ -69,15 +63,14 @@ const BookingCalendar = ({ onDateSelect, onBack }: BookingCalendarProps) => {
         </Button>
         <h2 className="text-3xl font-bold text-center mb-2">Seleziona la Data</h2>
         <p className="text-center text-muted-foreground">
-          Scegli il giorno per la tua prenotazione
+          Clicca sul giorno per procedere con la prenotazione
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {restaurantDates.map((date) => {
           const dateStr = formatDate(date);
           const availability = availabilities[dateStr];
-          const isSelected = selectedDate && formatDate(selectedDate) === dateStr;
           
           if (!availability) return null;
           
@@ -88,8 +81,7 @@ const BookingCalendar = ({ onDateSelect, onBack }: BookingCalendarProps) => {
                 "p-4 cursor-pointer transition-all duration-200 hover:scale-105",
                 availability.isSoldOut 
                   ? "bg-red-100 border-red-300 cursor-not-allowed opacity-60" 
-                  : "bg-green-50 border-green-300 hover:bg-green-100",
-                isSelected && "ring-2 ring-primary bg-primary/10"
+                  : "bg-green-50 border-green-300 hover:bg-green-100"
               )}
               onClick={() => handleDateClick(date)}
             >
@@ -111,22 +103,6 @@ const BookingCalendar = ({ onDateSelect, onBack }: BookingCalendarProps) => {
           );
         })}
       </div>
-
-      {selectedDate && (
-        <div className="text-center">
-          <div className="mb-4 p-4 bg-primary/10 rounded-lg">
-            <h3 className="text-xl font-semibold mb-2">Data Selezionata:</h3>
-            <p className="text-lg">{formatDisplayDate(selectedDate)}</p>
-          </div>
-          <Button 
-            onClick={handleConfirm}
-            size="lg"
-            className="bg-green-600 hover:bg-green-700 text-white px-8 py-3"
-          >
-            Continua con la Prenotazione
-          </Button>
-        </div>
-      )}
     </div>
   );
 };
