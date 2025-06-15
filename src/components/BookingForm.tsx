@@ -19,6 +19,7 @@ const BookingForm = ({ date, onBack, onSuccess }: BookingFormProps) => {
   const [formData, setFormData] = useState({
     seats: '',
     name: '',
+    phone: '',
     email: '',
     notes: ''
   });
@@ -58,6 +59,7 @@ const BookingForm = ({ date, onBack, onSuccess }: BookingFormProps) => {
         date: date.toISOString().split('T')[0],
         seats,
         name: formData.name.trim(),
+        phone: formData.phone.trim(),
         email: formData.email.trim(),
         notes: formData.notes.trim(),
         code: bookingCode,
@@ -143,6 +145,21 @@ const BookingForm = ({ date, onBack, onSuccess }: BookingFormProps) => {
               required
               className="mt-2"
               placeholder="Il tuo nome e cognome"
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="phone" className="text-base font-medium">
+              Telefono *
+            </Label>
+            <Input
+              id="phone"
+              type="tel"
+              value={formData.phone}
+              onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+              required
+              className="mt-2"
+              placeholder="Il tuo numero di telefono"
             />
           </div>
 

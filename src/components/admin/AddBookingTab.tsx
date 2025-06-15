@@ -19,6 +19,7 @@ const AddBookingTab = ({ onBookingAdded }: AddBookingTabProps) => {
     date: '',
     seats: '',
     name: '',
+    phone: '',
     email: '',
     notes: ''
   });
@@ -31,6 +32,7 @@ const AddBookingTab = ({ onBookingAdded }: AddBookingTabProps) => {
         date: newBooking.date,
         seats: parseInt(newBooking.seats),
         name: newBooking.name,
+        phone: newBooking.phone,
         email: newBooking.email,
         notes: newBooking.notes,
         code: generateBookingCode(),
@@ -40,7 +42,7 @@ const AddBookingTab = ({ onBookingAdded }: AddBookingTabProps) => {
       const success = await saveBooking(booking);
       
       if (success) {
-        setNewBooking({ date: '', seats: '', name: '', email: '', notes: '' });
+        setNewBooking({ date: '', seats: '', name: '', phone: '', email: '', notes: '' });
         onBookingAdded();
         toast({
           title: "Prenotazione aggiunta",
@@ -93,6 +95,16 @@ const AddBookingTab = ({ onBookingAdded }: AddBookingTabProps) => {
               id="new-name"
               value={newBooking.name}
               onChange={(e) => setNewBooking({ ...newBooking, name: e.target.value })}
+              required
+            />
+          </div>
+          <div>
+            <Label htmlFor="new-phone">Telefono</Label>
+            <Input
+              id="new-phone"
+              type="tel"
+              value={newBooking.phone}
+              onChange={(e) => setNewBooking({ ...newBooking, phone: e.target.value })}
               required
             />
           </div>

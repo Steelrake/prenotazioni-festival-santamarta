@@ -13,7 +13,7 @@ const BookingsTab = ({ bookings, onDeleteBooking }: BookingsTabProps) => {
   const handleExportCSV = () => {
     try {
       // Create CSV header
-      const headers = ['Codice', 'Nome', 'Email', 'Data', 'Posti', 'Note', 'Data Prenotazione'];
+      const headers = ['Codice', 'Nome', 'Telefono', 'Email', 'Data', 'Posti', 'Note', 'Data Prenotazione'];
       
       // Create CSV content
       const csvContent = [
@@ -21,6 +21,7 @@ const BookingsTab = ({ bookings, onDeleteBooking }: BookingsTabProps) => {
         ...bookings.map(booking => [
           booking.code,
           `"${booking.name}"`,
+          `"${booking.phone}"`,
           booking.email,
           booking.date,
           booking.seats,

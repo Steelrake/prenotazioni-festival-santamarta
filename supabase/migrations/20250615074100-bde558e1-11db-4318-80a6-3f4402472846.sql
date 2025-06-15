@@ -1,0 +1,2 @@
+
+ALTER TABLE bookings ADD COLUMN phone text NOT NULL DEFAULT '';
