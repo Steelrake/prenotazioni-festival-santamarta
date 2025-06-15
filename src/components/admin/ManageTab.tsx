@@ -86,6 +86,7 @@ const ManageTab = ({
         bookings.forEach((booking, index) => {
           content += `${index + 1}. Codice: ${booking.code}\n`;
           content += `   Nome: ${booking.name}\n`;
+          content += `   Telefono: ${booking.phone}\n`;
           content += `   Email: ${booking.email}\n`;
           content += `   Posti: ${booking.seats}\n`;
           if (booking.notes) {

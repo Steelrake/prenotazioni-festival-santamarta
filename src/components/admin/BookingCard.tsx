@@ -17,7 +17,7 @@ const BookingCard = ({ booking, onDelete }: BookingCardProps) => {
         <div className="space-y-2">
           <div className="font-semibold">{booking.name}</div>
           <div className="text-sm text-muted-foreground">
-            {booking.email} | {booking.seats} posti
+            {booking.email} | {booking.phone} | {booking.seats} posti
           </div>
           <div className="text-sm">
             Data: {formatDisplayDate(new Date(booking.date))}
