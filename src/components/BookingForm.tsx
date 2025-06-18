@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -60,7 +59,7 @@ const BookingForm = ({ date, onBack, onSuccess }: BookingFormProps) => {
         seats,
         name: formData.name.trim(),
         phone: formData.phone.trim(),
-        email: formData.email.trim(),
+        email: formData.email.trim() || '',
         notes: formData.notes.trim(),
         code: bookingCode,
         created_at: new Date().toISOString()
@@ -165,14 +164,13 @@ const BookingForm = ({ date, onBack, onSuccess }: BookingFormProps) => {
 
           <div>
             <Label htmlFor="email" className="text-base font-medium">
-              Email *
+              Email (facoltativo)
             </Label>
             <Input
               id="email"
               type="email"
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              required
               className="mt-2"
               placeholder="la-tua-email@esempio.com"
             />

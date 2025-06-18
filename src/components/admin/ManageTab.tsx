@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { getRestaurantDates, formatDisplayDate } from '@/utils/dateUtils';
 import { Lock, Unlock, Save, Download } from 'lucide-react';
 import { DayAvailability } from '@/types/booking';
-import { getBookingsByDate } from '@/utils/supabaseStorage';
+import { getBookingsByDate, getDaySettings } from '@/utils/supabaseStorage';
 
 interface ManageTabProps {
   availabilities: Record<string, DayAvailability>;
@@ -71,11 +71,13 @@ const ManageTab = ({
       const bookings = await getBookingsByDate(dateStr);
       const date = new Date(dateStr);
       const formattedDate = formatDisplayDate(date);
+      const availability = availabilities[dateStr];
       
       let content = `Prenotazioni per ${formattedDate}\n`;
       content += `Data: ${dateStr}\n`;
       content += `Totale prenotazioni: ${bookings.length}\n`;
-      content += `Totale posti: ${bookings.reduce((sum, b) => sum + b.seats, 0)}\n\n`;
+      content += `Posti totali disponibili: ${availability?.totalSeats || 150}\n`;
+      content += `Posti effettivamente occupati: ${bookings.reduce((sum, b) => sum + b.seats, 0)}\n\n`;
       
       if (bookings.length === 0) {
         content += 'Nessuna prenotazione per questo giorno.\n';
@@ -84,15 +86,15 @@ const ManageTab = ({
         content += '===================\n\n';
         
         bookings.forEach((booking, index) => {
-          content += `${index + 1}. Codice: ${booking.code}\n`;
-          content += `   Nome: ${booking.name}\n`;
+          content += `${index + 1}. Nominativo: ${booking.name}\n`;
           content += `   Telefono: ${booking.phone}\n`;
-          content += `   Email: ${booking.email}\n`;
-          content += `   Posti: ${booking.seats}\n`;
+          content += `   N. Posti: ${booking.seats}\n`;
           if (booking.notes) {
             content += `   Note: ${booking.notes}\n`;
           }
-          content += `   Prenotato il: ${new Date(booking.created_at).toLocaleDateString('it-IT')}\n\n`;
+          content += `   E-mail: ${booking.email}\n`;
+          content += `   Data Prenotazione: ${new Date(booking.created_at).toLocaleDateString('it-IT')}\n`;
+          content += `   Codice: ${booking.code}\n\n`;
         });
       }
       

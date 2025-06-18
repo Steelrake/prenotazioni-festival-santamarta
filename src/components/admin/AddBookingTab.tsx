@@ -33,7 +33,7 @@ const AddBookingTab = ({ onBookingAdded }: AddBookingTabProps) => {
         seats: parseInt(newBooking.seats),
         name: newBooking.name,
         phone: newBooking.phone,
-        email: newBooking.email,
+        email: newBooking.email || '',
         notes: newBooking.notes,
         code: generateBookingCode(),
         created_at: new Date().toISOString()
@@ -109,13 +109,12 @@ const AddBookingTab = ({ onBookingAdded }: AddBookingTabProps) => {
             />
           </div>
           <div>
-            <Label htmlFor="new-email">Email</Label>
+            <Label htmlFor="new-email">Email (facoltativo)</Label>
             <Input
               id="new-email"
               type="email"
               value={newBooking.email}
               onChange={(e) => setNewBooking({ ...newBooking, email: e.target.value })}
-              required
             />
           </div>
           <div>
