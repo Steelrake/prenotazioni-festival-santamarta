@@ -122,7 +122,7 @@ export const getDayAvailability = async (date: Date): Promise<DayAvailability> =
     getDaySettings()
   ]);
   
-  const settings = daySettings[dateStr] || { maxSeats: 100, isSoldOut: false };
+  const settings = daySettings[dateStr] || { maxSeats: 150, isSoldOut: false };
   const bookedSeats = bookings.reduce((total, booking) => total + booking.seats, 0);
   const availableSeats = Math.max(0, settings.maxSeats - bookedSeats);
   
