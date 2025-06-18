@@ -152,7 +152,7 @@ const Index: React.FC = () => {
               </div>
               <div>
                 <h4 className="font-semibold text-gray-700 mb-2">Prenotazioni</h4>
-                <p className="text-gray-600">Massimo 100 posti per sera</p>
+                <p className="text-gray-600">Massimo 150 posti per sera</p>
                 <p className="text-gray-600">Prenotazione consigliata</p>
               </div>
             </div>
