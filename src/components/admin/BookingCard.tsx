@@ -15,9 +15,11 @@ const BookingCard = ({ booking, onDelete }: BookingCardProps) => {
     <Card className="p-4">
       <div className="flex justify-between items-start">
         <div className="space-y-2">
-          <div className="font-semibold">{booking.name}</div>
+          <div className="font-semibold">
+            {booking.name} <span className="ml-2 text-muted-foreground">({booking.seats} posti)</span>
+          </div>
           <div className="text-sm text-muted-foreground">
-            {booking.email} | {booking.phone} | {booking.seats} posti
+            <span className="font-bold">{booking.phone}</span> | {booking.email}
           </div>
           <div className="text-sm">
             Data: {formatDisplayDate(new Date(booking.date))}

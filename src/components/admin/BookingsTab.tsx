@@ -12,20 +12,20 @@ interface BookingsTabProps {
 const BookingsTab = ({ bookings, onDeleteBooking }: BookingsTabProps) => {
   const handleExportCSV = () => {
     try {
-      // Create CSV header
-      const headers = ['Codice', 'Nome', 'Telefono', 'Email', 'Data', 'Posti', 'Note', 'Data Prenotazione'];
+      // Create CSV header with new field order
+      const headers = ['Nominativo', 'Telefono', 'N. Posti', 'Data Selezionata', 'Note', 'Codice', 'E-mail', 'Data Prenotazione'];
       
-      // Create CSV content
+      // Create CSV content with new field order
       const csvContent = [
         headers.join(','),
         ...bookings.map(booking => [
-          booking.code,
           `"${booking.name}"`,
           `"${booking.phone}"`,
-          booking.email,
-          booking.date,
           booking.seats,
+          booking.date,
           `"${booking.notes || ''}"`,
+          booking.code,
+          booking.email,
           new Date(booking.created_at).toLocaleDateString('it-IT')
         ].join(','))
       ].join('\n');
