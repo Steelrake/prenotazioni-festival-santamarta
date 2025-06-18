@@ -16,16 +16,16 @@ const BookingCard = ({ booking, onDelete }: BookingCardProps) => {
       <div className="flex justify-between items-start">
         <div className="space-y-2">
           <div className="font-semibold">
-            {booking.name} <span className="ml-2 text-muted-foreground">({booking.seats} posti)</span>
+            {booking.name} <span className="ml-2 text-green-600 font-bold">({booking.seats} posti)</span>
           </div>
           <div className="text-sm text-muted-foreground">
-            <span className="font-bold">{booking.phone}</span> | {booking.email}
+            <span className="font-bold text-blue-600">{booking.phone}</span> | {booking.email}
           </div>
           <div className="text-sm">
             Data: {formatDisplayDate(new Date(booking.date))}
           </div>
           {booking.notes && (
-            <div className="text-sm text-muted-foreground">
+            <div className="text-sm text-amber-700">
               Note: {booking.notes}
             </div>
           )}
