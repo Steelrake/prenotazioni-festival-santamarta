@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Booking } from '@/types/booking';
-import { generateBookingCode, formatDate } from '@/utils/dateUtils';
+import { generateBookingCode, formatDate, getRestaurantDates } from '@/utils/dateUtils';
 import { saveBooking } from '@/utils/supabaseStorage';
 import { toast } from '@/hooks/use-toast';
 
@@ -24,15 +24,30 @@ const AddBookingTab = ({ onBookingAdded }: AddBookingTabProps) => {
     notes: ''
   });
 
-  // Get today's date in YYYY-MM-DD format for min date validation
-  const today = new Date();
-  const todayString = formatDate(today);
+  // Get available restaurant dates
+  const restaurantDates = getRestaurantDates();
+  const minDate = formatDate(restaurantDates[0]);
+  const maxDate = formatDate(restaurantDates[restaurantDates.length - 1]);
 
   const handleAddBooking = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validate that the selected date is not in the past
+    // Validate that the selected date is within the allowed range
     const selectedDate = new Date(newBooking.date);
+    const isValidDate = restaurantDates.some(date => 
+      formatDate(date) === newBooking.date
+    );
+    
+    if (!isValidDate) {
+      toast({
+        title: "Errore",
+        description: "La data selezionata non è disponibile per le prenotazioni.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    // Validate that the selected date is not in the past
     const currentDate = new Date();
     currentDate.setHours(0, 0, 0, 0);
     selectedDate.setHours(0, 0, 0, 0);
@@ -93,12 +108,12 @@ const AddBookingTab = ({ onBookingAdded }: AddBookingTabProps) => {
               type="date"
               value={newBooking.date}
               onChange={(e) => setNewBooking({ ...newBooking, date: e.target.value })}
-              min={todayString}
-              max="2025-07-27"
+              min={minDate}
+              max={maxDate}
               required
             />
             <p className="text-sm text-muted-foreground mt-1">
-              Non è possibile aggiungere prenotazioni per date passate
+              Date disponibili: dal 01/07/2025 al 27/07/2025 (esclusi i lunedì)
             </p>
           </div>
           <div>
