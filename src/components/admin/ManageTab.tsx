@@ -3,8 +3,9 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Progress } from '@/components/ui/progress';
 import { getRestaurantDates, formatDisplayDate } from '@/utils/dateUtils';
-import { Lock, Unlock, Save, Download } from 'lucide-react';
+import { Lock, Unlock, Save, Download, Users, UserCheck } from 'lucide-react';
 import { DayAvailability } from '@/types/booking';
 import { getBookingsByDate, getDaySettings } from '@/utils/supabaseStorage';
 
@@ -156,48 +157,134 @@ const ManageTab = ({
           const currentIsSoldOut = localChange?.isSoldOut ?? settings.isSoldOut;
           const hasLocalChanges = localChange !== undefined;
           
+          // Calculate percentages and colors
+          const bookedPercentage = currentTotalSeats > 0 ? (availability.bookedSeats / currentTotalSeats) * 100 : 0;
+          const availableSeats = currentTotalSeats - availability.bookedSeats;
+          
+          // Determine status color
+          let statusColor = 'bg-green-100 border-green-200';
+          let statusTextColor = 'text-green-800';
+          
+          if (currentIsSoldOut) {
+            statusColor = 'bg-red-100 border-red-200';
+            statusTextColor = 'text-red-800';
+          } else if (bookedPercentage >= 90) {
+            statusColor = 'bg-orange-100 border-orange-200';
+            statusTextColor = 'text-orange-800';
+          } else if (bookedPercentage >= 70) {
+            statusColor = 'bg-yellow-100 border-yellow-200';
+            statusTextColor = 'text-yellow-800';
+          }
+          
           return (
-            <Card key={dateStr} className={`p-4 ${hasLocalChanges ? 'border-orange-300 bg-orange-50' : ''}`}>
-              <div className="flex justify-between items-center">
-                <div>
-                  <h3 className="font-semibold">{formatDisplayDate(date)}</h3>
-                  <div className="text-sm text-muted-foreground">
-                    {availability.bookedSeats}/{currentTotalSeats} prenotati
+            <Card key={dateStr} className={`p-6 ${hasLocalChanges ? 'border-orange-300 bg-orange-50' : statusColor}`}>
+              <div className="space-y-4">
+                {/* Header with date and status */}
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h3 className="font-semibold text-lg">{formatDisplayDate(date)}</h3>
                     {hasLocalChanges && (
-                      <span className="ml-2 text-orange-600 font-medium">
+                      <span className="text-sm text-orange-600 font-medium">
                         (modifiche non salvate)
                       </span>
                     )}
                   </div>
+                  <div className="flex gap-2">
+                    <Input
+                      type="number"
+                      value={currentTotalSeats}
+                      onChange={(e) => handleLocalMaxSeatsChange(dateStr, parseInt(e.target.value))}
+                      className="w-20"
+                      min="1"
+                    />
+                    <Button
+                      size="sm"
+                      variant={currentIsSoldOut ? "destructive" : "default"}
+                      onClick={() => handleLocalSoldOutChange(dateStr, !currentIsSoldOut)}
+                      className={`min-w-[120px] gap-2 ${
+                        !currentIsSoldOut ? 'bg-green-600 hover:bg-green-700 text-white' : ''
+                      }`}
+                    >
+                      {currentIsSoldOut ? (
+                        <>
+                          <Lock size={16} />
+                          Chiuso
+                        </>
+                      ) : (
+                        <>
+                          <Unlock size={16} />
+                          Aperto
+                        </>
+                      )}
+                    </Button>
+                  </div>
                 </div>
-                <div className="flex gap-2 items-center">
-                  <Input
-                    type="number"
-                    value={currentTotalSeats}
-                    onChange={(e) => handleLocalMaxSeatsChange(dateStr, parseInt(e.target.value))}
-                    className="w-20"
-                    min="1"
-                  />
-                  <Button
-                    size="sm"
-                    variant={currentIsSoldOut ? "destructive" : "default"}
-                    onClick={() => handleLocalSoldOutChange(dateStr, !currentIsSoldOut)}
-                    className={`min-w-[120px] gap-2 ${
-                      !currentIsSoldOut ? 'bg-green-600 hover:bg-green-700 text-white' : ''
-                    }`}
-                  >
+
+                {/* Visual seats indicator */}
+                <div className="space-y-3">
+                  {/* Progress bar */}
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-sm font-medium">
+                      <span>Occupazione Posti</span>
+                      <span className={bookedPercentage >= 90 ? 'text-red-600' : bookedPercentage >= 70 ? 'text-orange-600' : 'text-green-600'}>
+                        {bookedPercentage.toFixed(1)}%
+                      </span>
+                    </div>
+                    <Progress 
+                      value={bookedPercentage} 
+                      className="h-3"
+                    />
+                  </div>
+
+                  {/* Seats summary cards */}
+                  <div className="grid grid-cols-2 gap-4">
+                    {/* Booked seats */}
+                    <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                      <div className="flex items-center gap-2 mb-1">
+                        <UserCheck className="w-4 h-4 text-red-600" />
+                        <span className="text-sm font-medium text-red-800">Prenotati</span>
+                      </div>
+                      <div className="text-2xl font-bold text-red-600">
+                        {availability.bookedSeats}
+                      </div>
+                      <div className="text-xs text-red-600">
+                        posti occupati
+                      </div>
+                    </div>
+
+                    {/* Available seats */}
+                    <div className={`${currentIsSoldOut ? 'bg-gray-50 border-gray-200' : 'bg-green-50 border-green-200'} rounded-lg p-3`}>
+                      <div className="flex items-center gap-2 mb-1">
+                        <Users className={`w-4 h-4 ${currentIsSoldOut ? 'text-gray-600' : 'text-green-600'}`} />
+                        <span className={`text-sm font-medium ${currentIsSoldOut ? 'text-gray-800' : 'text-green-800'}`}>
+                          {currentIsSoldOut ? 'Non Disponibili' : 'Disponibili'}
+                        </span>
+                      </div>
+                      <div className={`text-2xl font-bold ${currentIsSoldOut ? 'text-gray-600' : 'text-green-600'}`}>
+                        {currentIsSoldOut ? 0 : availableSeats}
+                      </div>
+                      <div className={`text-xs ${currentIsSoldOut ? 'text-gray-600' : 'text-green-600'}`}>
+                        posti liberi
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Status indicator */}
+                  <div className={`px-3 py-2 rounded-lg text-center text-sm font-medium ${statusColor} ${statusTextColor}`}>
                     {currentIsSoldOut ? (
-                      <>
-                        <Lock size={16} />
-                        Chiuso
-                      </>
+                      '🔒 SOLD OUT - Prenotazioni chiuse'
+                    ) : bookedPercentage >= 90 ? (
+                      '⚠️ QUASI PIENO - Ultimi posti disponibili'
+                    ) : bookedPercentage >= 70 ? (
+                      '🟡 OCCUPAZIONE ALTA - Pochi posti rimasti'
                     ) : (
-                      <>
-                        <Unlock size={16} />
-                        Aperto
-                      </>
+                      '✅ DISPONIBILE - Molti posti liberi'
                     )}
-                  </Button>
+                  </div>
+                </div>
+
+                {/* Action buttons */}
+                <div className="flex gap-2 pt-2 border-t">
                   <Button
                     size="sm"
                     onClick={() => handleDownloadDay(dateStr)}
