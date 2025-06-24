@@ -16,6 +16,8 @@ const BookingCalendar = ({ onDateSelect, onBack }: BookingCalendarProps) => {
   const [availabilities, setAvailabilities] = useState<Record<string, DayAvailability>>({});
   const [loading, setLoading] = useState(true);
   const restaurantDates = getRestaurantDates();
+  const today = new Date();
+  today.setHours(0, 0, 0, 0); // Reset time to start of day for accurate comparison
 
   useEffect(() => {
     const loadAvailabilities = async () => {
@@ -37,10 +39,19 @@ const BookingCalendar = ({ onDateSelect, onBack }: BookingCalendarProps) => {
   const handleDateClick = (date: Date) => {
     const dateStr = formatDate(date);
     const availability = availabilities[dateStr];
+    
+    // Check if date is in the past
+    if (date < today) {
+      return; // Don't allow selection of past dates
+    }
+    
     if (availability && !availability.isSoldOut) {
-      // Vai direttamente al form di prenotazione
       onDateSelect(date);
     }
+  };
+
+  const isDateInPast = (date: Date) => {
+    return date < today;
   };
 
   if (loading) {
@@ -71,6 +82,7 @@ const BookingCalendar = ({ onDateSelect, onBack }: BookingCalendarProps) => {
         {restaurantDates.map((date) => {
           const dateStr = formatDate(date);
           const availability = availabilities[dateStr];
+          const isPastDate = isDateInPast(date);
           
           if (!availability) return null;
           
@@ -78,10 +90,12 @@ const BookingCalendar = ({ onDateSelect, onBack }: BookingCalendarProps) => {
             <Card
               key={dateStr}
               className={cn(
-                "p-4 cursor-pointer transition-all duration-200 hover:scale-105",
-                availability.isSoldOut 
-                  ? "bg-red-100 border-red-300 cursor-not-allowed opacity-60" 
-                  : "bg-green-50 border-green-300 hover:bg-green-100"
+                "p-4 transition-all duration-200",
+                isPastDate 
+                  ? "bg-gray-100 border-gray-300 cursor-not-allowed opacity-50" 
+                  : availability.isSoldOut 
+                    ? "bg-red-100 border-red-300 cursor-not-allowed opacity-60" 
+                    : "bg-green-50 border-green-300 hover:bg-green-100 cursor-pointer hover:scale-105"
               )}
               onClick={() => handleDateClick(date)}
             >
@@ -89,7 +103,11 @@ const BookingCalendar = ({ onDateSelect, onBack }: BookingCalendarProps) => {
                 <div className="font-semibold text-lg mb-2">
                   {formatDisplayDate(date)}
                 </div>
-                {availability.isSoldOut ? (
+                {isPastDate ? (
+                  <div className="text-gray-500 font-medium">
+                    DATA PASSATA
+                  </div>
+                ) : availability.isSoldOut ? (
                   <div className="text-red-600 font-medium">
                     COMPLETO
                   </div>

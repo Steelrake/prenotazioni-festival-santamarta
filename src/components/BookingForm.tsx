@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -25,6 +26,13 @@ const BookingForm = ({ date, onBack, onSuccess }: BookingFormProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [availability, setAvailability] = useState<any>(null);
 
+  // Check if the selected date is in the past
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const selectedDate = new Date(date);
+  selectedDate.setHours(0, 0, 0, 0);
+  const isDateInPast = selectedDate < today;
+
   // Load availability when component mounts
   useState(() => {
     const loadAvailability = async () => {
@@ -36,6 +44,17 @@ const BookingForm = ({ date, onBack, onSuccess }: BookingFormProps) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Prevent submission if date is in the past
+    if (isDateInPast) {
+      toast({
+        title: "Errore",
+        description: "Non è possibile prenotare per date passate.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -92,6 +111,32 @@ const BookingForm = ({ date, onBack, onSuccess }: BookingFormProps) => {
     return (
       <div className="max-w-2xl mx-auto p-6">
         <div className="text-center">Caricamento...</div>
+      </div>
+    );
+  }
+
+  // If date is in the past, show error message
+  if (isDateInPast) {
+    return (
+      <div className="max-w-2xl mx-auto p-6">
+        <div className="mb-8">
+          <Button 
+            onClick={onBack}
+            variant="outline"
+            className="mb-4"
+          >
+            ← Cambia Data
+          </Button>
+          <div className="text-center p-8 bg-red-50 rounded-lg border border-red-200">
+            <h2 className="text-2xl font-bold text-red-600 mb-4">Data Non Valida</h2>
+            <p className="text-red-700 mb-4">
+              Non è possibile prenotare per il giorno {formatDisplayDate(date)} perché è una data passata.
+            </p>
+            <Button onClick={onBack} variant="outline">
+              Seleziona un'altra data
+            </Button>
+          </div>
+        </div>
       </div>
     );
   }

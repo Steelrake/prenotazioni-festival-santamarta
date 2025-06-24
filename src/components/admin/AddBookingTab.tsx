@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Booking } from '@/types/booking';
-import { generateBookingCode } from '@/utils/dateUtils';
+import { generateBookingCode, formatDate } from '@/utils/dateUtils';
 import { saveBooking } from '@/utils/supabaseStorage';
 import { toast } from '@/hooks/use-toast';
 
@@ -24,8 +24,28 @@ const AddBookingTab = ({ onBookingAdded }: AddBookingTabProps) => {
     notes: ''
   });
 
+  // Get today's date in YYYY-MM-DD format for min date validation
+  const today = new Date();
+  const todayString = formatDate(today);
+
   const handleAddBooking = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate that the selected date is not in the past
+    const selectedDate = new Date(newBooking.date);
+    const currentDate = new Date();
+    currentDate.setHours(0, 0, 0, 0);
+    selectedDate.setHours(0, 0, 0, 0);
+    
+    if (selectedDate < currentDate) {
+      toast({
+        title: "Errore",
+        description: "Non è possibile aggiungere prenotazioni per date passate.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     try {
       const booking: Booking = {
         id: crypto.randomUUID(),
@@ -73,10 +93,13 @@ const AddBookingTab = ({ onBookingAdded }: AddBookingTabProps) => {
               type="date"
               value={newBooking.date}
               onChange={(e) => setNewBooking({ ...newBooking, date: e.target.value })}
-              min="2025-06-30"
+              min={todayString}
               max="2025-07-27"
               required
             />
+            <p className="text-sm text-muted-foreground mt-1">
+              Non è possibile aggiungere prenotazioni per date passate
+            </p>
           </div>
           <div>
             <Label htmlFor="new-seats">Numero posti</Label>

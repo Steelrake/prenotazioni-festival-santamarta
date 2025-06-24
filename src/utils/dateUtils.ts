@@ -38,3 +38,22 @@ export const generateBookingCode = (): string => {
   }
   return result;
 };
+
+export const isDateInPast = (date: Date): boolean => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const checkDate = new Date(date);
+  checkDate.setHours(0, 0, 0, 0);
+  return checkDate < today;
+};
+
+export const validateBookingDate = (date: Date): { isValid: boolean; error?: string } => {
+  if (isDateInPast(date)) {
+    return {
+      isValid: false,
+      error: 'Non è possibile prenotare per date passate.'
+    };
+  }
+  
+  return { isValid: true };
+};
