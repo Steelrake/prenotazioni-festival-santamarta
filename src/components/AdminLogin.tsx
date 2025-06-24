@@ -20,7 +20,7 @@ const AdminLogin = ({ onLogin, onBack }: AdminLoginProps) => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (credentials.username === 'admin' && credentials.password === 'admin') {
+    if (credentials.username === 'Festival_SM_2025' && credentials.password === 'admin') {
       onLogin();
       toast({
         title: "Accesso effettuato",
