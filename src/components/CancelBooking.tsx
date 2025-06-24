@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { deleteBooking, getBookingByCode } from '@/utils/supabaseStorage';
 import { toast } from '@/hooks/use-toast';
-import { X, Check } from 'lucide-react';
+import { X, Check, AlertTriangle } from 'lucide-react';
 
 interface CancelBookingProps {
   onBack: () => void;
@@ -16,6 +16,21 @@ const CancelBooking = ({ onBack }: CancelBookingProps) => {
   const [code, setCode] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [cancelled, setCancelled] = useState(false);
+
+  const canCancelBooking = (bookingDate: string): boolean => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const booking = new Date(bookingDate);
+    booking.setHours(0, 0, 0, 0);
+    
+    // Calculate the difference in days
+    const timeDifference = booking.getTime() - today.getTime();
+    const daysDifference = Math.ceil(timeDifference / (1000 * 3600 * 24));
+    
+    // Allow cancellation only if booking is at least 2 days in the future
+    return daysDifference >= 2;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,6 +43,16 @@ const CancelBooking = ({ onBack }: CancelBookingProps) => {
         toast({
           title: "Codice Non Trovato",
           description: "Il codice inserito non corrisponde a nessuna prenotazione.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Check if cancellation is allowed based on date
+      if (!canCancelBooking(booking.date)) {
+        toast({
+          title: "Disdetta Non Consentita",
+          description: "Attenzione!!! La disdetta online della prenotazione non è più possibile. Contattare la direzione.",
           variant: "destructive"
         });
         return;
@@ -103,6 +128,17 @@ const CancelBooking = ({ onBack }: CancelBookingProps) => {
           Inserisci il codice di prenotazione per cancellare
         </p>
       </div>
+
+      {/* Warning message about cancellation policy */}
+      <Card className="p-4 mb-6 bg-amber-50 border-amber-200">
+        <div className="flex items-start gap-3">
+          <AlertTriangle className="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" />
+          <div className="text-sm text-amber-800">
+            <p className="font-semibold mb-1">Politica di Disdetta</p>
+            <p>È possibile disdire la prenotazione online solo fino a 2 giorni prima della data selezionata. Per disdette dell'ultimo momento, contattare direttamente la direzione.</p>
+          </div>
+        </div>
+      </Card>
 
       <Card className="p-6">
         <form onSubmit={handleSubmit} className="space-y-6">
