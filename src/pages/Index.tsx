@@ -101,7 +101,7 @@ const Index: React.FC = () => {
               Cene al Festival Santa Marta
             </h1>
             <p className="text-xl text-gray-600 mb-4">
-              Aperto tutte le sere dalle 19:00 alle 24:00
+              Aperto tutte le sere dalle 20.00 alle 23.00
             </p>
             <p className="text-lg text-gray-500 mb-8">
               Periodo estivo: 30 Giugno - 27 Luglio 2025
@@ -147,7 +147,7 @@ const Index: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-left">
               <div>
                 <h4 className="font-semibold text-gray-700 mb-2">Orari</h4>
-                <p className="text-gray-600">Martedì - Domenica: 19:00 - 24:00</p>
+                <p className="text-gray-600">Martedì - Domenica: 20.00 - 23.00</p>
                 <p className="text-red-500 text-sm">Chiuso tutti i lunedì</p>
               </div>
               <div>
