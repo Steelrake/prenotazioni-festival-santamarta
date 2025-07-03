@@ -113,7 +113,7 @@ const BookingCalendar = ({ onDateSelect, onBack }: BookingCalendarProps) => {
                   </div>
                 ) : (
                   <div className="text-green-600 font-medium">
-                    {availability.availableSeats} posti liberi
+                    DISPONIBILE
                   </div>
                 )}
               </div>
