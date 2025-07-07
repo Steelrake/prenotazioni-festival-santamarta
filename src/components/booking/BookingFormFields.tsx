@@ -42,6 +42,7 @@ const BookingFormFields = ({
           onChange={(e) => onFormDataChange('seats', e.target.value)}
           required
           className="mt-2"
+          placeholder="inserisci qui il numero di posti che vuoi prenotare"
         />
       </div>
 
