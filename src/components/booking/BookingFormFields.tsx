@@ -1,4 +1,3 @@
-
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -43,7 +42,6 @@ const BookingFormFields = ({
           onChange={(e) => onFormDataChange('seats', e.target.value)}
           required
           className="mt-2"
-          placeholder={`Max ${availability.availableSeats} posti`}
         />
       </div>
 
