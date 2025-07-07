@@ -58,7 +58,6 @@ const BookingFormContainer = ({ date, onBack, onSuccess }: BookingFormContainerP
         <h2 className="text-3xl font-bold text-center mb-2">Completa la Prenotazione</h2>
         <div className="text-center p-4 bg-primary/10 rounded-lg">
           <p className="text-lg font-semibold">{formatDisplayDate(date)}</p>
-          <p className="text-muted-foreground">{availability.availableSeats} posti disponibili</p>
         </div>
       </div>
 
