@@ -4,9 +4,10 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { getRestaurantDates, formatDisplayDate } from '@/utils/dateUtils';
-import { Lock, Unlock, Save, Download, Users, UserCheck } from 'lucide-react';
-import { DayAvailability } from '@/types/booking';
+import { Lock, Unlock, Save, Download, Users, UserCheck, Eye } from 'lucide-react';
+import { DayAvailability, Booking } from '@/types/booking';
 import { getBookingsByDate, getDaySettings } from '@/utils/supabaseStorage';
 
 interface ManageTabProps {
@@ -35,6 +36,8 @@ const ManageTab = ({
 }: ManageTabProps) => {
   const [localChanges, setLocalChanges] = useState<LocalChanges>({});
   const [saving, setSaving] = useState(false);
+  const [bookingsDialogOpen, setBookingsDialogOpen] = useState(false);
+  const [selectedDateBookings, setSelectedDateBookings] = useState<{ date: string; bookings: Booking[] }>({ date: '', bookings: [] });
   const restaurantDates = getRestaurantDates();
 
   const handleLocalSoldOutChange = (date: string, isSoldOut: boolean) => {
@@ -110,6 +113,16 @@ const ManageTab = ({
       window.URL.revokeObjectURL(url);
     } catch (error) {
       console.error('Error downloading day data:', error);
+    }
+  };
+
+  const handleViewBookings = async (dateStr: string) => {
+    try {
+      const bookings = await getBookingsByDate(dateStr);
+      setSelectedDateBookings({ date: dateStr, bookings });
+      setBookingsDialogOpen(true);
+    } catch (error) {
+      console.error('Error loading bookings:', error);
     }
   };
 
@@ -239,16 +252,20 @@ const ManageTab = ({
                   {/* Seats summary cards */}
                   <div className="grid grid-cols-2 gap-4">
                     {/* Booked seats */}
-                    <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                    <div 
+                      className="bg-red-50 border border-red-200 rounded-lg p-3 cursor-pointer hover:bg-red-100 transition-colors"
+                      onClick={() => handleViewBookings(dateStr)}
+                    >
                       <div className="flex items-center gap-2 mb-1">
                         <UserCheck className="w-4 h-4 text-red-600" />
                         <span className="text-sm font-medium text-red-800">Prenotati</span>
+                        <Eye className="w-3 h-3 text-red-600 ml-auto" />
                       </div>
                       <div className="text-2xl font-bold text-red-600">
                         {availability.bookedSeats}
                       </div>
                       <div className="text-xs text-red-600">
-                        posti occupati
+                        posti occupati - clicca per dettagli
                       </div>
                     </div>
 
@@ -320,6 +337,89 @@ const ManageTab = ({
           </Button>
         </div>
       )}
+
+      {/* Bookings Detail Dialog */}
+      <Dialog open={bookingsDialogOpen} onOpenChange={setBookingsDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>
+              Prenotazioni del {selectedDateBookings.date ? formatDisplayDate(new Date(selectedDateBookings.date)) : ''}
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            {selectedDateBookings.bookings.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                Nessuna prenotazione per questo giorno
+              </div>
+            ) : (
+              <>
+                <div className="text-sm text-muted-foreground mb-4">
+                  Totale prenotazioni: {selectedDateBookings.bookings.length} | 
+                  Posti totali prenotati: {selectedDateBookings.bookings.reduce((sum, b) => sum + b.seats, 0)}
+                </div>
+                
+                <div className="grid gap-4">
+                  {selectedDateBookings.bookings.map((booking, index) => (
+                    <Card key={booking.id} className="p-4">
+                      <div className="grid md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2">
+                            <span className="font-semibold text-lg">#{index + 1}</span>
+                            <span className="text-sm bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                              Codice: {booking.code}
+                            </span>
+                          </div>
+                          
+                          <div>
+                            <span className="font-medium">Nome:</span> {booking.name}
+                          </div>
+                          
+                          <div>
+                            <span className="font-medium">Telefono:</span> {booking.phone}
+                          </div>
+                          
+                          <div>
+                            <span className="font-medium">Email:</span> {booking.email}
+                          </div>
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2">
+                            <Users className="w-4 h-4" />
+                            <span className="font-medium">Posti:</span> 
+                            <span className="font-bold text-lg">{booking.seats}</span>
+                          </div>
+                          
+                          <div>
+                            <span className="font-medium">Data prenotazione:</span> {' '}
+                            {new Date(booking.created_at).toLocaleDateString('it-IT', {
+                              year: 'numeric',
+                              month: 'long',
+                              day: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            })}
+                          </div>
+                          
+                          {booking.notes && (
+                            <div>
+                              <span className="font-medium">Note:</span>
+                              <div className="bg-gray-50 p-2 rounded mt-1 text-sm">
+                                {booking.notes}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </Card>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
