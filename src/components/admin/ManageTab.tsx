@@ -6,7 +6,9 @@ import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { getRestaurantDates, formatDisplayDate } from '@/utils/dateUtils';
-import { Lock, Unlock, Save, Download, Users, UserCheck, Eye } from 'lucide-react';
+import { format } from 'date-fns';
+import { it } from 'date-fns/locale';
+import { Lock, Unlock, Save, Download, Users, UserCheck, Eye, FileSpreadsheet } from 'lucide-react';
 import { DayAvailability, Booking } from '@/types/booking';
 import { getBookingsByDate, getDaySettings } from '@/utils/supabaseStorage';
 
@@ -124,6 +126,35 @@ const ManageTab = ({
     } catch (error) {
       console.error('Error loading bookings:', error);
     }
+  };
+
+  const handleDownloadDayCSV = (dateStr: string, bookings: Booking[]) => {
+    // Create CSV content with same structure as ExportTab
+    let csvContent = 'Data,Nome,Email,Posti,Codice,Note,Data Prenotazione\n';
+    
+    bookings.forEach(booking => {
+      const row = [
+        booking.date,
+        `"${booking.name}"`,
+        booking.email,
+        booking.seats,
+        booking.code,
+        `"${booking.notes || ''}"`,
+        format(new Date(booking.created_at), 'dd/MM/yyyy HH:mm', { locale: it })
+      ].join(',');
+      csvContent += row + '\n';
+    });
+    
+    // Create and download CSV
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `prenotazioni-${dateStr}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
   };
 
   const saveAllChanges = async () => {
@@ -342,8 +373,20 @@ const ManageTab = ({
       <Dialog open={bookingsDialogOpen} onOpenChange={setBookingsDialogOpen}>
         <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>
-              Prenotazioni del {selectedDateBookings.date ? formatDisplayDate(new Date(selectedDateBookings.date)) : ''}
+            <DialogTitle className="flex items-center justify-between">
+              <span>
+                Prenotazioni del {selectedDateBookings.date ? formatDisplayDate(new Date(selectedDateBookings.date)) : ''}
+              </span>
+              {selectedDateBookings.bookings.length > 0 && (
+                <Button
+                  onClick={() => handleDownloadDayCSV(selectedDateBookings.date, selectedDateBookings.bookings)}
+                  size="sm"
+                  className="bg-green-600 hover:bg-green-700 text-white gap-2"
+                >
+                  <FileSpreadsheet size={16} />
+                  CSV
+                </Button>
+              )}
             </DialogTitle>
           </DialogHeader>
           
